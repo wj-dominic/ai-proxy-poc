@@ -41,5 +41,11 @@ func (lb *LoadBalancer) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	if !node.IsAllowRequest(r.ContentLength) {
+		http.Error(w, "Too many requests", http.StatusTooManyRequests)
+		return
+	}
+
+	// 서버에 문제가 발생한 경우는 노드의 rate limit을 어떻게 처리하지?
 	node.ServeHTTP(w, r)
 }
