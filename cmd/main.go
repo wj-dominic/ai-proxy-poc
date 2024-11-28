@@ -58,7 +58,16 @@ func main() {
 		}
 	}()
 
-	// 6. Graceful shutdown
+	// 6. Reset Rate Limit ticker
+	for _, n := range nodes {
+		go func(n *node.Node) {
+			for range time.Tick(1 * time.Minute) {
+				n.ResetRateLimit()
+			}
+		}(n)
+	}
+
+	// 7. Graceful shutdown
 	ctx, stop := signal.NotifyContext(context.Background(), os.Interrupt)
 	defer stop()
 

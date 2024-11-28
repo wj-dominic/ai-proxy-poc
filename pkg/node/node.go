@@ -60,6 +60,14 @@ func (n *Node) IsAllowRequest(bodySize int64) bool {
 	return true
 }
 
+func (n *Node) ResetRateLimit() {
+	n.mu.Lock()
+	defer n.mu.Unlock()
+
+	n.currentRPM = 0
+	n.currentBPM = 0
+}
+
 func dialector(url *url.URL) func(*http.Request) {
 	return func(req *http.Request) {
 		req.Header.Set("X-Forwarded-Host", req.Host)
