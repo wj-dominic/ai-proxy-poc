@@ -48,4 +48,8 @@ func (lb *LoadBalancer) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 
 	// 서버에 문제가 발생한 경우는 노드의 rate limit을 어떻게 처리하지?
 	node.ServeHTTP(w, r)
+
+	// response를 확인하고 500 계열 에러가 발생하면 다음 노드에 요청을 보낸다면?
+	// 현재 로직을 재수행?
+	// 이 때, 어떤 노드도 반응하지 않는 경우 처리는?
 }
