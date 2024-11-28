@@ -1,66 +1,37 @@
 package config
 
+import (
+	"os"
+
+	"gopkg.in/yaml.v3"
+)
+
+const defaultConfigPath = "config.yaml"
+
 type Config struct {
-	Server struct {
-		Port      int    `toml:"port"`
-		Algorithm string `toml:"algorithm"`
-	} `toml:"server"`
+	LB struct {
+		Port      int    `yaml:"port"`
+		Algorithm string `yaml:"algorithm"`
+	} `yaml:"lb"`
 	Nodes []struct {
-		ID     string `toml:"id"`
-		URL    string `toml:"url"`
-		MaxBPM int    `toml:"max_bpm"`
-		MaxRPM int    `toml:"max_rpm"`
-	} `toml:"nodes"`
+		ID     string `yaml:"id"`
+		URL    string `yaml:"url"`
+		MaxRPM int    `yaml:"max_rpm"`
+		MaxBPM int64  `yaml:"max_bpm"`
+	} `yaml:"nodes"`
 }
 
-func LoadConfig(path string) (*Config, error) {
+func LoadConfig() (*Config, error) {
+	// TODO: 환경변수 등 사용해서 config 읽도록 처리 필요
+	bytes, err := os.ReadFile(defaultConfigPath)
+	if err != nil {
+		return nil, err
+	}
 
-	config := &Config{
-		Server: struct {
-			Port      int    `toml:"port"`
-			Algorithm string `toml:"algorithm"`
-		}{
-			Port:      8081,
-			Algorithm: "round_robin",
-		},
-		Nodes: []struct {
-			ID     string `toml:"id"`
-			URL    string `toml:"url"`
-			MaxBPM int    `toml:"max_bpm"`
-			MaxRPM int    `toml:"max_rpm"`
-		}{
-			{
-				ID:     "node1",
-				URL:    "http://localhost:8082",
-				MaxBPM: 1000,
-				MaxRPM: 100,
-			},
-			{
-				ID:     "node2",
-				URL:    "http://localhost:8083",
-				MaxBPM: 1000,
-				MaxRPM: 100,
-			},
-			{
-				ID:     "node3",
-				URL:    "http://localhost:8084",
-				MaxBPM: 1000,
-				MaxRPM: 100,
-			},
-		},
-		// Nodes: []struct {
-		// 	ID     string `toml:"id"`
-		// 	URL    string `toml:"url"`
-		// 	MaxBPM int    `toml:"max_bpm"`
-		// 	MaxRPM int    `toml:"max_rpm"`
-		// }{
-		// 	{
-		// 		ID:     "api-server",
-		// 		URL:    "http://localhost:8082",
-		// 		MaxBPM: 30,
-		// 		MaxRPM: 3,
-		// 	},
-		// },
+	config := &Config{}
+	err = yaml.Unmarshal(bytes, config)
+	if err != nil {
+		return nil, err
 	}
 
 	return config, nil

@@ -15,11 +15,13 @@ import (
 )
 
 func main() {
-	config, err := config.LoadConfig("")
+	// 1. Load configuration
+	config, err := config.LoadConfig()
 	if err != nil {
 		log.Fatal(err)
 	}
 
+	// 2. Create nodes
 	nodes := make([]*node.Node, 0)
 	for _, n := range config.Nodes {
 		parsedURL, err := url.Parse(n.URL)
@@ -27,14 +29,28 @@ func main() {
 			log.Fatal(err)
 		}
 
-		nodes = append(nodes, node.NewNode(n.ID, parsedURL, n.MaxBPM, n.MaxRPM))
+		nodes = append(nodes, node.NewNode(n.ID, parsedURL, n.MaxRPM, n.MaxBPM))
 	}
 
+	// 3. Choose load balancing algorithm
+	// TODO: Implement other algorithms
+	var balancingAlgorithm loadbalancer.Algorithm
+	switch config.LB.Algorithm {
+	case "round-robin":
+		log.Println("Using Round Robin algorithm")
+		balancingAlgorithm = loadbalancer.NewRoundRobin(nodes)
+	default:
+		log.Println("Using Round Robin algorithm as default")
+		balancingAlgorithm = loadbalancer.NewRoundRobin(nodes)
+	}
+
+	// 4. Create server with lb
 	server := &http.Server{
-		Handler: loadbalancer.NewLoadBalancer(nodes, loadbalancer.NewRoundRobin(nodes)),
+		Handler: loadbalancer.NewLoadBalancer(nodes, balancingAlgorithm),
 		Addr:    ":8081",
 	}
 
+	// 5. Run server
 	go func() {
 		log.Println("Server is running on port", server.Addr)
 		if err := server.ListenAndServe(); err != nil && err != http.ErrServerClosed {
@@ -42,12 +58,13 @@ func main() {
 		}
 	}()
 
+	// 6. Graceful shutdown
 	ctx, stop := signal.NotifyContext(context.Background(), os.Interrupt)
 	defer stop()
 
 	<-ctx.Done()
 
-	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
 	defer cancel()
 
 	if err := server.Shutdown(ctx); err != nil {
