@@ -1,0 +1,24 @@
+lb:
+  port: 8081
+  algorithm: round_robin
+
+nodes:
+  - id: node1
+    url: http://localhost:8082
+    max_rpm: 100
+    max_bpm: 5000
+
+  - id: node2
+    url: http://localhost:8083
+    max_rpm: 200
+    max_bpm: 10000
+
+  - id: node3
+    url: http://localhost:8084
+    max_rpm: 300
+    max_bpm: 15000
+    
+  - id: node4
+    url: http://localhost:8085
+    max_rpm: 400
+    max_bpm: 20000    
